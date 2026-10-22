@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-white text-gray-900 antialiased;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-1 rounded border border-gray-500 bg-white px-3 py-1.5 text-sm hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+  .btn-primary {
+    @apply border-gray-900 bg-gray-900 text-white hover:bg-gray-700;
+  }
+  .box {
+    @apply rounded border border-gray-400;
+  }
+  .label {
+    @apply text-xs uppercase tracking-wide text-gray-500;
+  }
+}
