@@ -15,6 +15,8 @@ npm run dev
 
 Open http://localhost:5173 and sign in with any email. To go straight to the main screen, open http://localhost:5173/#/review/merchant.
 
+The backend lives in [`backend/`](backend/README.md) and has its own setup. Agent instructions: [`AGENTS.md`](AGENTS.md).
+
 | Script | What it does |
 |---|---|
 | `npm run dev` | Start the Vite dev server with hot reload |
@@ -114,6 +116,12 @@ src/
 ## Changelog
 
 Every commit adds an entry here, newest first.
+
+### 2026-11-05: Week 7 reviewer backend
+- `backend/`: TypeScript + Fastify API on PostgreSQL implementing routes R1, R3–R7 (create from .txt upload, list, read in order, retry drafts, save correction with version check, mark done)
+- Simulated boundaries, labeled as such: dev-token identity, fake translation provider, local-disk original storage
+- 79 unit and component tests (component tests run against real PostgreSQL), plus `backend/scripts/smoke.sh` for a running server
+- `AGENTS.md`, `docs/decisions.md`, `docs/plan/work-plan.md`, `docs/prompt-logs/week-07.md`, `docker-compose.yml` for local Postgres
 
 ### 2026-11-05: Week 6 architecture proposal
 - `docs/architecture/proposal.md`: PostgreSQL vs. Firestore comparison, full schema, data-flow and ER sketches, book/paragraph API routes, one traced operation, revision log

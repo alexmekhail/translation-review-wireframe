@@ -3,3 +3,7 @@ dist
 *.tsbuildinfo
 .DS_Store
 .claude/settings.local.json
+backend/node_modules
+backend/.data
+backend/coverage
+backend/.env
