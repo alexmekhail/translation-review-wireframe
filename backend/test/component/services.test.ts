@@ -179,6 +179,22 @@ describe('Book, draft and review services (component)', () => {
     expect(blobs.files.size).toBe(0)
   })
 
+  it('delete (owner): rows cascade; if removing the original then fails, the delete stands and the leftover is reported', async () => {
+    const book = await uploadAndTranslate()
+    await reviews.saveEdit(alex, book.id, book.paragraphs[0]!.id, { base_version: 0, text_en: 'x' })
+    const reported: string[] = []
+    books.onBlobCleanupError = (_err, key) => reported.push(key)
+    blobs.delete = async () => {
+      throw new Error('simulated object-storage outage')
+    }
+
+    await books.delete(alex, book.id)
+
+    await expect(books.getBook(alex, book.id)).rejects.toMatchObject({ status: 404 })
+    expect((await db.query('SELECT count(*)::int AS n FROM paragraph_edit')).rows[0]!.n).toBe(0)
+    expect(reported).toEqual([`uploads/${book.id}/original.txt`])
+  })
+
   it('a rejected upload stores nothing', async () => {
     await expect(books.createFromUpload(alex, { fileName: 'notes.md', data: Buffer.from('نص') })).rejects.toMatchObject({
       status: 415,

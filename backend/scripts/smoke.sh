@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Exercises a RUNNING backend over real HTTP (not in-process inject).
+# Exercises a RUNNING backend over real HTTP (not in-process inject): create, read, update,
+# read, delete, plus failure paths. Run from backend/ against a server using the default BLOB_DIR.
 # Usage: API=http://127.0.0.1:3000/api/v1 ./scripts/smoke.sh
 # Needs: curl, python3. Uses the simulated dev tokens (dev-alex, dev-sam).
 set -euo pipefail
@@ -35,4 +36,15 @@ expect "$(curl -s -o /dev/null -w '%{http_code}' -X PATCH -H "$A" -H 'content-ty
 expect "$(curl -s -H "$A" $B/books/$ID | json 'd["paragraphs"][0]["my_edit"]["text_en"]')" "Long ago, there was a merchant." "correction intact after stale save"
 expect "$(curl -s -o /dev/null -w '%{http_code}' -H "$S" $B/books/$ID)" 404 "other user cannot see the book"
 expect "$(curl -s -o /dev/null -w '%{http_code}' $B/books)" 401 "no session"
+
+echo "rename (R8), read it back:"
+expect "$(curl -s -X PATCH -H "$A" -H 'content-type: application/json' -d '{"title":"Smoke: renamed"}' $B/books/$ID | json 'd["title"]')" "Smoke: renamed" "renamed"
+expect "$(curl -s -H "$A" $B/books/$ID | json 'd["title"]')" "Smoke: renamed" "re-read returns the new title"
+expect "$(curl -s -o /dev/null -w '%{http_code}' -X PATCH -H "$A" -H 'content-type: application/json' -d '{"title":"  "}' $B/books/$ID)" 400 "blank title rejected"
+
+echo "delete (R9):"
+expect "$(curl -s -o /dev/null -w '%{http_code}' -X DELETE -H "$S" $B/books/$ID)" 404 "other user cannot delete"
+expect "$(curl -s -o /dev/null -w '%{http_code}' -X DELETE -H "$A" $B/books/$ID)" 204 "owner deletes"
+expect "$(curl -s -o /dev/null -w '%{http_code}' -H "$A" $B/books/$ID)" 404 "book is gone"
+if [ -d .data/blobs/uploads/$ID ] && [ -n "$(ls -A .data/blobs/uploads/$ID 2>/dev/null)" ]; then echo "  FAIL: original file still on disk"; exit 1; else echo "  ok: original file removed from disk"; fi
 echo "smoke passed"

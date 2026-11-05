@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { AppError, conflict, invalid, notFound } from '../domain/errors.js'
+import { AppError, conflict, forbidden, invalid, notFound } from '../domain/errors.js'
 import type { BookDetail, BookSummary, Caller, CreatedBook } from '../domain/types.js'
 import type { BlobStore } from '../blob/blobStore.js'
 import { readSource, type ReaderLimits } from '../ingest/sourceReader.js'
@@ -16,7 +16,10 @@ export interface UploadInput {
 
 const MAX_TITLE = 200
 
-/** Book lifecycle: create from upload (R1+R2), list (R3), read (R4), retry drafts (R5), complete (R7). */
+/**
+ * Book lifecycle: create from upload (R1+R2), list (R3), read (R4), retry drafts (R5), complete (R7),
+ * rename (R8) and delete (R9). Rename/delete are owner-only (docs/decisions.md D10).
+ */
 export class BookService {
   constructor(
     private readonly store: PgReviewStore,
@@ -78,6 +81,35 @@ export class BookService {
     if (!result) throw notFound()
     return result
   }
+
+  async rename(caller: Caller, bookId: unknown, body: unknown): Promise<{ id: string; title: string }> {
+    const id = requireId(bookId, 'bookId')
+    const title = normalizeTitle((body as { title?: unknown } | null)?.title)
+    await this.requireOwner(caller, id, 'rename')
+    const renamed = await this.store.renameBook(id, caller.userId, title)
+    if (!renamed) throw notFound() // deleted between the check and the update
+    return renamed
+  }
+
+  /** Deletes the book for every reviewer, then its original file (best effort, after the commit). */
+  async delete(caller: Caller, bookId: unknown): Promise<void> {
+    const id = requireId(bookId, 'bookId')
+    await this.requireOwner(caller, id, 'delete')
+    const deleted = await this.store.deleteBook(id, caller.userId)
+    if (!deleted) throw notFound()
+    await this.blobs.delete(deleted.sourceFileKey).catch((err: unknown) => this.onBlobCleanupError(err, deleted.sourceFileKey))
+  }
+
+  /** Unassigned → 404 (no existence leak). Assigned but not the uploader → 403. */
+  private async requireOwner(caller: Caller, bookId: string, action: string): Promise<void> {
+    const access = await this.store.getAccess(bookId, caller.userId)
+    if (!access) throw notFound()
+    if (!access.isOwner) throw forbidden(`Only the uploader can ${action} this book.`)
+  }
+
+  /** A leftover original is harmless to users but must be visible to operators. */
+  onBlobCleanupError: (err: unknown, key: string) => void = (err, key) =>
+    console.error(`Book deleted but its original file could not be removed: ${key}`, err)
 }
 
 function stripExtension(fileName: string): string {

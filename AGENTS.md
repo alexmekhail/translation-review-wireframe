@@ -27,7 +27,7 @@ TEST_DATABASE_URL=postgres://postgres@localhost:5432/translation_review_test npm
 ## Rules
 
 - Keep boundaries: HTTP (`backend/src/http`) → services (`backend/src/services`) → ports (`storage`, `blob`, `providers`). No SQL or business rules in routes; no HTTP types in services.
-- Every query that reads or writes a book's content joins `book_assignment` for the caller. Unassigned → 404, never 403.
+- Every query that reads or writes a book's content joins `book_assignment` for the caller. Unassigned → 404 (never reveal that the book exists). Assigned but not the owner, on an owner-only action (rename, delete) → 403 (D10).
 - Reading paragraphs always uses `ORDER BY position`.
 - Never overwrite `paragraph.machine_en` from a reviewer action; reviewer text goes in `paragraph_edit`.
 - Saves are compare-and-set on `version`; don't add a write path that skips it.

@@ -20,7 +20,8 @@ export interface AppDeps {
 type Params = { bookId: string; paragraphId: string }
 
 /**
- * HTTP boundary: maps the Week 6 routes (docs/architecture/proposal.md, section 3) to services.
+ * HTTP boundary: maps the Week 6 routes (docs/architecture/proposal.md, section 3) plus the
+ * Week 8 rename/delete routes to services.
  * No business rules live here; it authenticates, parses the transport, and maps errors.
  */
 export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
@@ -105,6 +106,17 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   app.patch<{ Params: Params }>('/api/v1/books/:bookId/assignments/me', async (req) =>
     deps.books.setCompleted(await caller(req), req.params.bookId, req.body),
   )
+
+  // R8 (Week 8): rename, owner only
+  app.patch<{ Params: Params }>('/api/v1/books/:bookId', async (req) =>
+    deps.books.rename(await caller(req), req.params.bookId, req.body),
+  )
+
+  // R9 (Week 8): delete, owner only; cascades to paragraphs, edits and assignments
+  app.delete<{ Params: Params }>('/api/v1/books/:bookId', async (req, reply) => {
+    await deps.books.delete(await caller(req), req.params.bookId)
+    return reply.status(204).send()
+  })
 
   return app
 }

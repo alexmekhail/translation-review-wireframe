@@ -1,6 +1,6 @@
 # Work Plan: Reviewer Backend (Weeks 7–8)
 
-Derived from the Week 5 PRD, the wireframe (`src/`), and the Week 6 proposal ([`../architecture/proposal.md`](../architecture/proposal.md)). Reviewed before execution; status as of the end of Week 7.
+Derived from the Week 5 PRD, the wireframe (`src/`), and the Week 6 proposal ([`../architecture/proposal.md`](../architecture/proposal.md)). Reviewed before execution; status updated as work landed.
 
 **MVP boundary.** One reviewer per book, Arabic → English, paragraph-level review, machine-vs-final diff, done never locks. Out: publishing, export, rich formatting, offline sync, multiple concurrent reviewers as a feature (the schema allows it), admin access to all books, cloud deployment.
 
@@ -25,12 +25,12 @@ Derived from the Week 5 PRD, the wireframe (`src/`), and the Week 6 proposal ([`
 | W7-8 | HTTP layer + simulated auth | W7-7 | HTTP component tests; `scripts/smoke.sh` against running server | Done |
 | W7-9 | AGENTS.md, decisions record, README, evidence log | all | Fresh reader can run setup and tests from README | Done |
 | **W8** | **CRUD journey + frontend (Week 8)** | W7 | | |
-| W8-1 | Delete book (owner only, cascades, removes original) | W7-7 | CRUD journey test checks rows and blob are gone | Planned |
-| W8-2 | Rename book (owner only) | W7-7 | Journey test reads the new title | Planned |
-| W8-3 | CRUD journey test: create → read → update → read → delete | W8-1, W8-2 | Asserts stored state, not just HTTP status | Planned |
-| W8-4 | Frontend "Live backend" screens calling the API | W7-8 | Browser walkthrough against the running backend | Planned |
-| W8-5 | Browser end-to-end check (Playwright) | W8-4 | Script passes; screenshots saved | Planned |
-| W8-6 | Azure dev environment connection | access | Request reaches the deployed backend | Planned; Azure access not yet available |
-| W8-7 | Telemetry | W8-6 | Request correlated in Application Insights | Planned |
+| W8-1 | Delete book (owner only, cascades, removes original) | W7-7 | CRUD journey test checks rows and blob are gone | Done |
+| W8-2 | Rename book (owner only) | W7-7 | Journey test reads the new title | Done |
+| W8-3 | CRUD journey test: create → read → update → read → delete | W8-1, W8-2 | Asserts stored state, not just HTTP status | Done |
+| W8-4 | Frontend "Live backend" screens calling the API | W7-8 | Browser walkthrough against the running backend | Done |
+| W8-5 | Browser end-to-end check (Playwright) | W8-4 | Script passes; screenshots saved | Done |
+| W8-6 | Azure dev environment connection | access | Request reaches the deployed backend | **Blocked**: no Azure access |
+| W8-7 | Telemetry | W8-6 | Request correlated in Application Insights | **Not done**: local request-id logs only |
 
-Parallel agents and worktrees were not used: the work was sequential, with one integration point per branch (`week-07`).
+Parallel agents and worktrees were not used: the work was sequential, with one integration point per branch (`week-07`, then `week-08` stacked on it).
