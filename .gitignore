@@ -7,3 +7,5 @@ backend/node_modules
 backend/.data
 backend/coverage
 backend/.env
+test-results
+playwright-report

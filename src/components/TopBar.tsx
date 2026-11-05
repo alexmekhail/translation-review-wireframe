@@ -5,6 +5,9 @@ export function TopBar() {
         [Logo] Translation Review
       </a>
       <div className="flex items-center gap-3 text-sm">
+        <a href="#/live" className="underline">
+          Live backend
+        </a>
         <span className="hidden text-gray-500 sm:inline">reviewer@example.org</span>
         <a href="#/" className="underline">
           Sign out

@@ -1,6 +1,6 @@
 # Translation Review Backend
 
-TypeScript + Fastify API over PostgreSQL for the reviewer MVP. Implements routes R1 and R3–R7 from the [Week 6 proposal](../docs/architecture/proposal.md); R2 runs inside R1 ([D7](../docs/decisions.md#d7-r2-folded-into-r1)).
+TypeScript + Fastify API over PostgreSQL for the reviewer MVP. Implements routes R1 and R3–R7 from the [Week 6 proposal](../docs/architecture/proposal.md), plus owner-only rename (R8) and delete (R9) added in Week 8. R2 runs inside R1 ([D7](../docs/decisions.md#d7-r2-folded-into-r1)).
 
 ## Boundary status
 
@@ -71,8 +71,10 @@ All under `/api/v1`. All except `/health` need `Authorization: Bearer <dev token
 | R5 retry | `POST /books/:bookId/translations/retry` | 202 `{retried_count}` | 404; 409 `nothing_to_retry` unless the book is `failed` |
 | R6 save | `PATCH /books/:bookId/paragraphs/:paragraphId/edits/me` body `{base_version, text_en?, is_done?}` | 200 `{text_en,is_done,version,updated_at}` | 400 validation; 404 paragraph not in this book or unassigned; 409 `not_translated`; 409 `version_conflict` with `current` |
 | R7 complete | `PATCH /books/:bookId/assignments/me` body `{completed}` | 200 `{completed_at}` | 400; 404 |
+| R8 rename | `PATCH /books/:bookId` body `{title}` (1–200 chars after trimming) | 200 `{id,title}` | 400 validation; 403 assigned but not the owner; 404 unassigned or unknown |
+| R9 delete | `DELETE /books/:bookId` | 204, no body. Paragraphs, all reviewers' edits and assignments are removed (`ON DELETE CASCADE`), then the original file | 400 `invalid_id` (incl. empty id); 403 not the owner; 404 unassigned, unknown, or already deleted |
 
-`PATCH` is partial: send only what changed. `base_version: 0` means "I have no edit yet"; a mismatch returns the stored edit so the client can reconcile.
+`PATCH` is partial: send only what changed. Rename and delete are owner-only ([D10](../docs/decisions.md#d10-delete-and-rename-are-owner-only-week-8)). If removing the original file fails after a delete, the delete still stands and the leftover key is logged. A book deleted while its drafts are running is handled: the run finishes without recreating anything. `base_version: 0` means "I have no edit yet"; a mismatch returns the stored edit so the client can reconcile.
 
 ## Tests
 
@@ -91,6 +93,8 @@ npm run test:coverage
 | `test/component/store` | Real PostgreSQL | Constraints, explicit ordering, rollback, access joins, per-reviewer rows | Service rules |
 | `test/component/services` | Real PostgreSQL, memory blobs, fake provider | Save/re-read, conflicts, 404 rules, retry keeps edits, no orphaned blobs | Real object storage or engine |
 | `test/component/http` | Fastify inject + real PostgreSQL | Status codes, bodies, multipart parsing, auth | Network, CORS in a browser |
-| `scripts/smoke.sh` | Running server over a socket | The same journey end to end over real HTTP | Browser behavior |
+| `test/component/crudJourney` | Fastify inject + real PostgreSQL | Create → read → update → read → delete with row and blob checks; 403/404 access; delete during translation | Network, browser |
+| `scripts/smoke.sh` | Running server over a socket | The same CRUD journey end to end over real HTTP, including the file on disk | Browser behavior |
+| `../e2e/live.spec.ts` (Playwright) | Real browser + Vite + running backend + PostgreSQL | The frontend page drives the real API: upload, aligned paragraphs, save, reload, conflict, done, rename, delete; unreachable backend; rejected upload | Cloud hosting, real identity, real engine |
 
 Fixtures are synthetic: invented Arabic sentences from the wireframe's mock data with deliberately rough English. They are not reviewed by a qualified translator, so they say nothing about translation quality.

@@ -45,6 +45,7 @@ export class DraftService {
       await this.store.markTranslated(p.id, draft, this.provider.name)
       translated++
     }
+    // null: the book was deleted while drafts were running; nothing left to update.
     const status = await this.store.finishTranslation(bookId)
     return { claimed: true, translated, failed, status }
   }

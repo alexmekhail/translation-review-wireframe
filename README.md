@@ -2,7 +2,7 @@
 
 A low-fidelity, clickable wireframe for a web app where bilingual volunteer reviewers upload Arabic documents (religious texts and literature), get a machine translation into English, and review and edit it paragraph by paragraph.
 
-> **Wireframe only.** It has no backend, no real translation API, and no auth. All data is mock data held in memory, so reloading the page resets everything.
+> **Wireframe screens use mock data.** The original screens (`#/docs`, `#/review/...`) have no backend: their data lives in memory and resets on reload. Since Week 8, the **Live backend** screens (`#/live`) call the real API in [`backend/`](backend/README.md). That API stores data in PostgreSQL, but identity and the translation provider are still simulated.
 
 ## Quick start
 
@@ -99,6 +99,12 @@ src/
 │   ├── SaveIndicator.tsx   # Autosave indicator + save-failed banner
 │   ├── StatusBadge.tsx
 │   └── TopBar.tsx
+├── live/                   # Week 8: screens wired to the real backend
+│   ├── api.ts              # API client + request log
+│   ├── LiveBooks.tsx       # #/live
+│   ├── LiveBook.tsx        # #/live/:id
+│   ├── RequestLog.tsx      # backend banner, request log, error box
+│   └── status.ts
 └── screens/
     ├── SignIn.tsx
     ├── DocumentList.tsx
@@ -107,15 +113,40 @@ src/
     └── Review.tsx
 ```
 
+## Live backend screens (Week 8)
+
+A narrow verification page for the real backend, separate from the mock screens. It shows the backend address, the simulated identity, and a log of every request with its status and request id.
+
+| Route | What it does |
+|---|---|
+| `#/live` | Lists my books from `GET /books`; upload a `.txt` (`POST /books`); delete (owner only) |
+| `#/live/:id` | Arabic and English side by side from `GET /books/:id`; Save a correction, Mark done, Show diff, Rename, Retry failed, Mark book done. Polls while drafts are produced |
+
+Run it with the backend running (see [`backend/README.md`](backend/README.md)), then `npm run dev` and open http://localhost:5173/#/live. Configure with `VITE_API_BASE_URL` (default `http://127.0.0.1:3000/api/v1`) and `VITE_DEV_TOKEN` (default `dev-alex`; a simulated dev token, not a secret).
+
+Browser end-to-end check (needs Postgres, `DATABASE_URL` and seeded users; starts the backend and Vite if they aren't running):
+
+```bash
+npx playwright install chromium   # once
+npm run e2e                       # screenshots go to docs/evidence/week-08/
+```
+
 ## Out of scope for this wireframe
 
-- Real authentication, persistence, or file parsing. Scanned-PDF and page-limit errors can only be previewed with the Dev panel
+- Real authentication. On the mock screens, also persistence and file parsing (the Live backend screens have both, for `.txt`). Scanned-PDF and page-limit errors can only be previewed with the Dev panel
 - A real machine translation service
 - Visual design and branding
 
 ## Changelog
 
 Every commit adds an entry here, newest first.
+
+### 2026-11-05: Week 8 CRUD journey and live frontend
+- Backend: owner-only rename (`PATCH /books/:id`) and delete (`DELETE /books/:id`, cascades, removes the original file); a book deleted mid-translation no longer crashes the run
+- Tests: CRUD journey component test checking rows and blobs at every step (89 backend tests total); `backend/scripts/smoke.sh` now covers the whole journey over real HTTP
+- Frontend: `#/live` and `#/live/:id` screens wired to the real API, with backend address, request log, loading/empty/error states, save conflicts handled without losing text
+- `e2e/live.spec.ts`: Playwright run against the real backend; screenshots in `docs/evidence/week-08/`
+- `docs/prompt-logs/week-08.md`; decisions D10 (owner-only delete/rename) and work plan updated; Azure connection blocked (no access)
 
 ### 2026-11-05: Fix type errors in backend tests
 - Three `rows[0]` possibly-undefined errors in `backend/test/component/store.test.ts` (Vitest does not type-check)

@@ -24,13 +24,18 @@ export interface Container {
 /** Wires real PostgreSQL + the chosen adapters. Tests pass their own blob store / provider. */
 export async function createContainer(
   config: Config,
-  overrides: { blobs?: BlobStore; provider?: TranslationProvider; logger?: boolean | object } = {},
+  overrides: {
+    blobs?: BlobStore
+    provider?: TranslationProvider
+    logger?: boolean | object
+    onBackgroundError?: (err: unknown) => void
+  } = {},
 ): Promise<Container> {
   const db = createDb(config.databaseUrl)
   const store = new PgReviewStore(db)
   const blobs = overrides.blobs ?? new FsBlobStore(config.blobDir)
   const provider = overrides.provider ?? new FakeTranslationProvider(FIXTURE_DICTIONARY, config.fakeFailOnceMarker)
-  const background = new BackgroundTasks()
+  const background = new BackgroundTasks(overrides.onBackgroundError)
   const drafts = new DraftService(store, provider)
   const books = new BookService(store, blobs, background, drafts, {
     maxBytes: config.maxUploadBytes,

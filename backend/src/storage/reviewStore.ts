@@ -39,7 +39,7 @@ export interface DraftStore {
   pendingParagraphs(bookId: string): Promise<{ id: string; source_ar: string }[]>
   markTranslated(paragraphId: string, machineEn: string, engine: string): Promise<void>
   markFailed(paragraphId: string, error: string): Promise<void>
-  finishTranslation(bookId: string): Promise<PipelineStatus>
+  finishTranslation(bookId: string): Promise<PipelineStatus | null>
 }
 
 const iso = (d: Date | string | null): string | null => (d === null ? null : new Date(d).toISOString())
@@ -177,6 +177,28 @@ export class PgReviewStore implements DraftStore {
     return row ? { isOwner: row.is_owner, pipelineStatus: row.pipeline_status, sourceFileKey: row.source_file_key } : null
   }
 
+  /** Owner-only rename (Week 8). The service checks ownership first; the owner_id filter makes it atomic. */
+  async renameBook(bookId: string, ownerId: string, title: string): Promise<{ id: string; title: string } | null> {
+    const r = await this.db.query<{ id: string; title: string }>(
+      `UPDATE book SET title = $3, updated_at = now() WHERE id = $1 AND owner_id = $2 RETURNING id, title`,
+      [bookId, ownerId, title],
+    )
+    return r.rows[0] ?? null
+  }
+
+  /**
+   * Owner-only delete (Week 8). Paragraphs, edits and assignments go with it (ON DELETE CASCADE).
+   * Returns the original file's key so the caller can remove it after the commit.
+   */
+  async deleteBook(bookId: string, ownerId: string): Promise<{ sourceFileKey: string } | null> {
+    const r = await this.db.query<{ source_file_key: string }>(
+      `DELETE FROM book WHERE id = $1 AND owner_id = $2 RETURNING source_file_key`,
+      [bookId, ownerId],
+    )
+    const row = r.rows[0]
+    return row ? { sourceFileKey: row.source_file_key } : null
+  }
+
   // ---------- translation pipeline ----------
 
   /** Atomically moves an uploaded book to translating. False if another run already claimed it. */
@@ -219,8 +241,11 @@ export class PgReviewStore implements DraftStore {
     )
   }
 
-  /** ready when every paragraph is translated, failed if any failed. Pending paragraphs leave it translating. */
-  async finishTranslation(bookId: string): Promise<PipelineStatus> {
+  /**
+   * ready when every paragraph is translated, failed if any failed. Pending paragraphs leave it translating.
+   * Null when the book no longer exists (deleted while its drafts were running).
+   */
+  async finishTranslation(bookId: string): Promise<PipelineStatus | null> {
     const r = await this.db.query<{ pipeline_status: PipelineStatus }>(
       `UPDATE book b SET pipeline_status = s.next, updated_at = now()
        FROM (
@@ -233,7 +258,7 @@ export class PgReviewStore implements DraftStore {
        WHERE b.id = $1 RETURNING b.pipeline_status`,
       [bookId],
     )
-    return r.rows[0]!.pipeline_status
+    return r.rows[0]?.pipeline_status ?? null
   }
 
   /** Failed paragraphs back to pending; book back to uploaded so it can be claimed again. */

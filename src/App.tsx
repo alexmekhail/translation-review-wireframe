@@ -6,6 +6,8 @@ import { DocumentList } from './screens/DocumentList'
 import { Upload } from './screens/Upload'
 import { Translating } from './screens/Translating'
 import { Review } from './screens/Review'
+import { LiveBooks } from './live/LiveBooks'
+import { LiveBook } from './live/LiveBook'
 
 export default function App() {
   const [screen, id] = useRoute()
@@ -23,6 +25,10 @@ export default function App() {
       break
     case 'review':
       body = <Review docId={id} />
+      break
+    case 'live':
+      // Real backend (Week 8). Everything else in this app is in-memory mock data.
+      body = id ? <LiveBook bookId={id} /> : <LiveBooks />
       break
     default:
       return (

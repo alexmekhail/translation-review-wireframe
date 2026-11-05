@@ -14,6 +14,7 @@ Consequential design decisions, newest last. Each says what was decided, why, an
 | D7 | R2 is a service step inside R1's transaction, not an HTTP route | Accepted (Week 7) |
 | D8 | TypeScript + Fastify for the backend | Accepted (Week 7) |
 | D9 | No token cache in the authenticator | Accepted (Week 7) |
+| D10 | Owner-only delete and rename; 403 for assigned non-owners | Accepted (Week 8) |
 
 ## D0. PostgreSQL, object storage, per-reviewer edits (Week 6)
 
@@ -55,3 +56,6 @@ Alex chose TypeScript, so frontend and backend share one language and the wirefr
 
 The first version cached token → user id. The HTTP component tests found that the cache kept pointing at user rows that had been deleted and re-created. Removed; the lookup is one indexed query per request.
 
+## D10. Delete and rename are owner-only (Week 8)
+
+Delete removes the book for everyone, including other reviewers' edits, so only the uploader (`book.owner_id`) may delete or rename. An assigned reviewer who is not the owner gets `403`: they already know the book exists, so hiding it adds nothing. A user with no assignment still gets `404`. This separates access to one book (assignment) from authority over the book itself (ownership). There is still no admin access to every book.
