@@ -18,7 +18,7 @@ TypeScript + Fastify API over PostgreSQL for the reviewer MVP. Implements routes
 ## Prerequisites
 
 - Node 18.18+ (tested on Node 22)
-- PostgreSQL 13+ (tested on 16). Either a local install, or `docker compose up -d db` from the repo root (the compose file was written but **not run** in the environment where this was built: no Docker daemon there).
+- PostgreSQL 13+ (tested on 16). Either a local install, or `docker compose up -d db` from the repo root after setting `POSTGRES_PASSWORD` (in your shell or a git-ignored root `.env`) (the compose file was written but **not run** in the environment where this was built: no Docker daemon there).
 
 ## Setup and run
 

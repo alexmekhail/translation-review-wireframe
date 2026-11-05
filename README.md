@@ -141,6 +141,10 @@ npm run e2e                       # screenshots go to docs/evidence/week-08/
 
 Every commit adds an entry here, newest first.
 
+### 2026-11-05: Remove hardcoded database password
+- `docker-compose.yml` reads `POSTGRES_PASSWORD` from the environment or a git-ignored `.env` instead of a literal (flagged by GitGuardian; it was only a local default, but no password belongs in the repo)
+- `backend/.env.example` uses a `CHANGE_ME` placeholder
+
 ### 2026-11-05: Week 8 CRUD journey and live frontend
 - Backend: owner-only rename (`PATCH /books/:id`) and delete (`DELETE /books/:id`, cascades, removes the original file); a book deleted mid-translation no longer crashes the run
 - Tests: CRUD journey component test checking rows and blobs at every step (89 backend tests total); `backend/scripts/smoke.sh` now covers the whole journey over real HTTP
