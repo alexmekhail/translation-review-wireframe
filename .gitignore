@@ -7,3 +7,4 @@ backend/node_modules
 backend/.data
 backend/coverage
 backend/.env
+.env

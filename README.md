@@ -117,6 +117,10 @@ src/
 
 Every commit adds an entry here, newest first.
 
+### 2026-11-05: Remove hardcoded database password
+- `docker-compose.yml` reads `POSTGRES_PASSWORD` from the environment or a git-ignored `.env` instead of a literal (flagged by GitGuardian; it was only a local default, but no password belongs in the repo)
+- `backend/.env.example` uses a `CHANGE_ME` placeholder
+
 ### 2026-11-05: Fix type errors in backend tests
 - Three `rows[0]` possibly-undefined errors in `backend/test/component/store.test.ts` (Vitest does not type-check)
 - `npm run check` in `backend/` runs the type check and tests together
