@@ -11,6 +11,7 @@
     "start": "tsx src/server.ts",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "check": "npm run typecheck && vitest run",
     "db:migrate": "tsx src/storage/migrate.ts",
     "db:seed": "tsx src/seed.ts",
     "test": "vitest run",

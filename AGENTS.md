@@ -19,8 +19,7 @@ npm run build                       # type-check + build
 cd backend && npm install
 export DATABASE_URL=postgres://postgres@localhost:5432/translation_review
 npm run db:seed && npm run dev      # http://127.0.0.1:3000/api/v1
-npm run typecheck
-TEST_DATABASE_URL=postgres://postgres@localhost:5432/translation_review_test npm test
+TEST_DATABASE_URL=postgres://postgres@localhost:5432/translation_review_test npm run check   # type-check + tests
 ```
 
 `TEST_DATABASE_URL` must point at a disposable database: tests drop and recreate its schema.

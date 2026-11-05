@@ -44,7 +44,7 @@ Inputs verified before planning: the Week 6 proposal (schema, R1–R7), the wire
 Environment: Node 22.22, PostgreSQL 16.15 running locally (real server, not an emulator).
 
 ```text
-$ npm run typecheck                      → no errors
+$ npm run typecheck                      → no errors (src + test; see the correction in section 4)
 $ TEST_DATABASE_URL=… npx vitest run
  ✓ test/component/services.test.ts (12 tests)
  ✓ test/component/http.test.ts (11 tests)
@@ -92,6 +92,8 @@ Server logs carry a `reqId` per request (also returned as `x-request-id`), e.g. 
 **Defect found by tests and fixed (agent).** The first `DevTokenAuthenticator` cached token → user id. Five HTTP component tests failed (`expected [] to have a length of 1`, `expected 400 to be 404`) because the cache kept the user id from an earlier test after users were deleted and re-created. Diagnosis: a cache like that would also be wrong if a user were deleted in real use. Fix: removed the cache; the unit test now asserts a lookup per request. Recorded as [D9](../decisions.md#d9-no-token-cache).
 
 **Environment problems (agent).** (1) Vitest loaded the frontend's PostCSS/Tailwind config from the repo root and crashed; fixed by giving the backend's Vitest config an empty PostCSS config. (2) The local Postgres server was stopped between turns and its data directory's permissions broke; it was re-created and run as a tracked background process. Neither changed any test expectation.
+
+**Type-check claim corrected (agent).** The first type-check ran before the test files existed. Vitest doesn't type-check, so three `rows[0]` "possibly undefined" errors in `test/component/store.test.ts` went unnoticed until the next type-check. They were fixed, and `npm run check` now runs the type check and the tests together.
 
 **Mutation run correction (agent).** The first version of the version-check mutation left `$5` unused, which could fail for an unrelated reason. Re-run with the parameter still bound so only the check was removed (result in section 3).
 

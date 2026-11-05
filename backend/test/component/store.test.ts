@@ -37,8 +37,8 @@ describe('PgReviewStore (component, real PostgreSQL)', () => {
   it('rolls back the whole book when part of the create fails (no half-created book)', async () => {
     const ghostOwner = randomUUID() // violates the app_user foreign key
     await expect(newBook(['أ'], ghostOwner)).rejects.toThrow()
-    expect((await db.query('SELECT count(*)::int AS n FROM book')).rows[0].n).toBe(0)
-    expect((await db.query('SELECT count(*)::int AS n FROM paragraph')).rows[0].n).toBe(0)
+    expect((await db.query('SELECT count(*)::int AS n FROM book')).rows[0]!.n).toBe(0)
+    expect((await db.query('SELECT count(*)::int AS n FROM paragraph')).rows[0]!.n).toBe(0)
   })
 
   it('the database rejects two paragraphs at the same position in one book', async () => {
@@ -102,6 +102,6 @@ describe('PgReviewStore (component, real PostgreSQL)', () => {
 
     expect((await store.getBook(b.id, users.alex))!.paragraphs[0]!.my_edit!.text_en).toBe('Alex version')
     expect((await store.getBook(b.id, users.sam))!.paragraphs[0]!.my_edit!.text_en).toBe('Sam version')
-    expect((await db.query('SELECT count(*)::int AS n FROM paragraph_edit')).rows[0].n).toBe(2)
+    expect((await db.query('SELECT count(*)::int AS n FROM paragraph_edit')).rows[0]!.n).toBe(2)
   })
 })

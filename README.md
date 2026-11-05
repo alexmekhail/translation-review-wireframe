@@ -117,6 +117,10 @@ src/
 
 Every commit adds an entry here, newest first.
 
+### 2026-11-05: Fix type errors in backend tests
+- Three `rows[0]` possibly-undefined errors in `backend/test/component/store.test.ts` (Vitest does not type-check)
+- `npm run check` in `backend/` runs the type check and tests together
+
 ### 2026-11-05: Week 7 reviewer backend
 - `backend/`: TypeScript + Fastify API on PostgreSQL implementing routes R1, R3–R7 (create from .txt upload, list, read in order, retry drafts, save correction with version check, mark done)
 - Simulated boundaries, labeled as such: dev-token identity, fake translation provider, local-disk original storage

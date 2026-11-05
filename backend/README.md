@@ -78,7 +78,8 @@ All under `/api/v1`. All except `/health` need `Authorization: Bearer <dev token
 
 ```bash
 export TEST_DATABASE_URL=postgres://postgres@localhost:5432/translation_review_test   # disposable!
-npm test                 # everything
+npm run check            # type-check (src + tests), then every test
+npm test                 # tests only
 npm run test:unit        # no database needed
 npm run test:component   # real PostgreSQL
 npm run test:coverage
