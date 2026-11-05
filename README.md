@@ -115,6 +115,10 @@ src/
 
 Every commit adds an entry here, newest first.
 
+### 2026-11-05: Week 6 architecture proposal
+- `docs/architecture/proposal.md`: PostgreSQL vs. Firestore comparison, full schema, data-flow and ER sketches, book/paragraph API routes, one traced operation, revision log
+- `docs/prompt-logs/week-06.md`: evidence log for the design work
+
 ### 2026-10-22: Initial commit
 - Clickable wireframe with all six screen areas: sign in, document list, upload, translating, review, and empty/error states
 - Mock data covering every document status
